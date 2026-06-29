@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { Star, StarOff, Sparkles, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Star, StarOff, Sparkles, ArrowUpRight, ArrowDownRight, Bell } from 'lucide-react';
 import BottomSheet from '@/components/ui/BottomSheet';
 import Chip from '@/components/ui/Chip';
+import MiniChart from '@/components/coin/MiniChart';
+import AlertManager from '@/components/alerts/AlertManager';
+import AIAnalysis from '@/components/coin/AIAnalysis';
 import { useAppStore, useMarketStore } from '@/lib/store';
 import { fetchCoinOHLCV } from '@/lib/api';
 import { formatPrice, formatVolume, SCANNERS } from '@/lib/constants';
@@ -109,12 +112,14 @@ const STATUS_TEXT = {
 };
 
 export default function CoinDetailSheet() {
-  const { selectedCoin, coinDetailOpen, closeCoinDetail, addToWatchlist, removeFromWatchlist, watchlist } =
+  const { selectedCoin, coinDetailOpen, closeCoinDetail, addToWatchlist, removeFromWatchlist, watchlist, mode } =
     useAppStore();
   const { coins } = useMarketStore();
 
   const [ohlcv, setOhlcv] = useState<OHLCV[]>([]);
   const [loadingChart, setLoadingChart] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const coin = coins.find((c) => c.symbol === selectedCoin);
   const isInWatchlist = selectedCoin ? watchlist.includes(selectedCoin) : false;
@@ -223,54 +228,12 @@ export default function CoinDetailSheet() {
         </div>
       </div>
 
-      {/* Mini Chart Placeholder */}
-      <div className="mt-4 h-40 w-full overflow-hidden rounded-xl">
+      {/* Mini Chart */}
+      <div className="mt-4 w-full overflow-hidden rounded-xl">
         {loadingChart ? (
-          <div className="skeleton h-full w-full" />
+          <div className="skeleton h-40 w-full rounded-xl" />
         ) : (
-          <div
-            className="relative flex h-full w-full items-end gap-px overflow-hidden rounded-xl"
-            style={{
-              background: isPositive
-                ? 'linear-gradient(180deg, rgba(14,203,129,0.15) 0%, rgba(14,203,129,0.02) 100%)'
-                : 'linear-gradient(180deg, rgba(246,70,93,0.15) 0%, rgba(246,70,93,0.02) 100%)',
-            }}
-          >
-            {ohlcv.length > 0
-              ? (() => {
-                  const closes = ohlcv.map((c) => c.close);
-                  const min = Math.min(...closes);
-                  const max = Math.max(...closes);
-                  const range = max - min || 1;
-                  return closes.map((c, i) => (
-                    <div
-                      key={i}
-                      className="flex-1"
-                      style={{
-                        height: `${((c - min) / range) * 80 + 10}%`,
-                        backgroundColor: c >= (closes[i - 1] ?? c) ? '#0ecb81' : '#f6465d',
-                        opacity: 0.7,
-                        minWidth: '1px',
-                      }}
-                    />
-                  ));
-                })()
-              : Array.from({ length: 40 }).map((_, i) => {
-                  const h = 20 + Math.sin(i * 0.3) * 30 + Math.random() * 20;
-                  return (
-                    <div
-                      key={i}
-                      className="flex-1"
-                      style={{
-                        height: `${h}%`,
-                        backgroundColor: isPositive ? '#0ecb81' : '#f6465d',
-                        opacity: 0.5,
-                        minWidth: '1px',
-                      }}
-                    />
-                  );
-                })}
-          </div>
+          <MiniChart ohlcv={ohlcv} height={160} isPositive={isPositive} />
         )}
       </div>
 
@@ -374,10 +337,17 @@ export default function CoinDetailSheet() {
       {/* Action Buttons */}
       <div className="mt-6 flex gap-3">
         <button
+          onClick={() => setAiOpen(true)}
           className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-bg-primary transition-transform active:scale-[0.98]"
         >
           <Sparkles size={16} />
           Analisa AI
+        </button>
+        <button
+          onClick={() => setAlertOpen(true)}
+          className="flex items-center justify-center rounded-xl border border-border-line bg-surface-card px-3 py-3 text-text-secondary transition-transform active:scale-[0.98]"
+        >
+          <Bell size={16} />
         </button>
         <button
           onClick={() => {
@@ -398,6 +368,31 @@ export default function CoinDetailSheet() {
           {isInWatchlist ? 'Hapus' : 'Watchlist'}
         </button>
       </div>
+
+      {/* Alert Manager */}
+      <AlertManager
+        symbol={coin.symbol}
+        currentPrice={coin.price}
+        isOpen={alertOpen}
+        onClose={() => setAlertOpen(false)}
+      />
+
+      {/* AI Analysis */}
+      {indicators && (
+        <AIAnalysis
+          symbol={coin.symbol}
+          price={coin.price}
+          change24h={coin.change24h}
+          indicators={indicators}
+          support={supportResistance.support}
+          resistance={supportResistance.resistance}
+          mode={mode}
+          isOpen={aiOpen}
+          onClose={() => {
+            setAiOpen(false);
+          }}
+        />
+      )}
     </BottomSheet>
   );
 }

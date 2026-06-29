@@ -1,5 +1,6 @@
 'use client';
 
+import AlertBell from '@/components/alerts/AlertBell';
 import { useAppStore } from '@/lib/store';
 import type { TradingMode, MarketType } from '@/lib/types';
 import { MODE_CONFIG } from '@/lib/constants';
@@ -27,23 +28,26 @@ export default function Header({
           {title || 'CryptoBro'}
         </h1>
 
-        {showMarketType && (
-          <div className="flex items-center gap-1 rounded-lg bg-surface-card p-0.5">
-            {marketTypes.map((type) => (
-              <button
-                key={type}
-                onClick={() => setMarketType(type)}
-                className={`rounded-md px-3 py-1 text-xs font-semibold capitalize transition-colors ${
-                  marketType === type
-                    ? 'bg-accent text-bg-primary'
-                    : 'text-text-muted hover:text-text-secondary'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {showMarketType && (
+            <div className="flex items-center gap-1 rounded-lg bg-surface-card p-0.5">
+              {marketTypes.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setMarketType(type)}
+                  className={`rounded-md px-3 py-1 text-xs font-semibold capitalize transition-colors ${
+                    marketType === type
+                      ? 'bg-accent text-bg-primary'
+                      : 'text-text-muted hover:text-text-secondary'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          )}
+          <AlertBell />
+        </div>
       </div>
 
       {showMode && (
