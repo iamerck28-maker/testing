@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Info } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronDown, ChevronRight, Info, Calculator, BarChart2, ArrowRight } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { MODE_CONFIG, SCANNERS } from '@/lib/constants';
+import PositionSizeCalc from '@/components/tools/PositionSizeCalc';
 import type { TradingMode, MarketType, ValidationStat } from '@/lib/types';
 
 const MOCK_VALIDATION: ValidationStat[] = SCANNERS.slice(0, 6).map((s) => ({
@@ -31,6 +33,7 @@ export default function ProfilePage() {
   const { mode, setMode, marketType, setMarketType } = useAppStore();
   const [guideOpen, setGuideOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(false);
 
   const tradingModes: TradingMode[] = ['scalping', 'intraday', 'swing'];
   const marketTypes: MarketType[] = ['spot', 'futures'];
@@ -176,6 +179,46 @@ export default function ProfilePage() {
           ))}
         </div>
       </section>
+
+      {/* Tools */}
+      <section className="mt-6">
+        <h2 className="mb-3 text-sm font-semibold text-text-secondary">Tools Trading</h2>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() => setCalcOpen(true)}
+            className="flex items-center justify-between rounded-xl border border-border-line bg-surface-card p-4 transition-colors active:bg-bg-secondary"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                <Calculator size={18} className="text-accent" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-text-primary">Position Size Calculator</p>
+                <p className="text-[11px] text-text-muted">Hitung ukuran posisi & manajemen risiko</p>
+              </div>
+            </div>
+            <ArrowRight size={16} className="text-text-muted" />
+          </button>
+
+          <Link
+            href="/backtest"
+            className="flex items-center justify-between rounded-xl border border-border-line bg-surface-card p-4 transition-colors active:bg-bg-secondary"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                <BarChart2 size={18} className="text-accent" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-text-primary">Backtesting</p>
+                <p className="text-[11px] text-text-muted">Uji strategi MA Crossover & RSI</p>
+              </div>
+            </div>
+            <ArrowRight size={16} className="text-text-muted" />
+          </Link>
+        </div>
+      </section>
+
+      <PositionSizeCalc isOpen={calcOpen} onClose={() => setCalcOpen(false)} />
 
       {/* Panduan Skor */}
       <section className="mt-6">

@@ -372,6 +372,7 @@ export default function CoinDetailSheet() {
       {/* Alert Manager */}
       <AlertManager
         symbol={coin.symbol}
+        coinId={coin.id}
         currentPrice={coin.price}
         isOpen={alertOpen}
         onClose={() => setAlertOpen(false)}

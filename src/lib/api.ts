@@ -22,6 +22,7 @@ export async function fetchMarketData(page = 1, perPage = 50): Promise<CoinData[
     if (!res.ok) throw new Error('Failed to fetch market data');
     const data = await res.json();
     return data.map((coin: Record<string, unknown>) => ({
+      id: coin.id as string,
       symbol: (coin.symbol as string).toUpperCase(),
       name: coin.name as string,
       price: (coin.current_price as number) ?? 0,

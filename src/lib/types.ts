@@ -1,4 +1,5 @@
 export interface CoinData {
+  id: string;
   symbol: string;
   name: string;
   price: number;
@@ -9,6 +10,33 @@ export interface CoinData {
   image: string;
   high24h: number;
   low24h: number;
+}
+
+export interface FundingRateEntry {
+  symbol: string;
+  markPrice: number;
+  fundingRate: number;
+  nextFundingTime: number;
+}
+
+export interface BacktestTrade {
+  entryDate: number;
+  exitDate: number;
+  entryPrice: number;
+  exitPrice: number;
+  returnPct: number;
+}
+
+export interface BacktestResult {
+  strategy: string;
+  symbol: string;
+  tradeCount: number;
+  winRate: number;
+  totalReturn: number;
+  maxDrawdown: number;
+  trades: BacktestTrade[];
+  startDate: number;
+  endDate: number;
 }
 
 export interface ScannerPick extends CoinData {

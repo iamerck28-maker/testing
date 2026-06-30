@@ -5,6 +5,7 @@ import { create } from 'zustand';
 export interface PriceAlert {
   id: string;
   symbol: string;
+  coinId: string;
   targetPrice: number;
   direction: 'above' | 'below';
   createdAt: number;
