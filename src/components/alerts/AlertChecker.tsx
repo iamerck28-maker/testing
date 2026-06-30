@@ -23,17 +23,25 @@ function playBeep() {
 }
 
 export default function AlertChecker() {
-  const { alerts, getActiveAlerts, markTriggered } = useAlertStore();
+  const { getActiveAlerts, markTriggered } = useAlertStore();
   const { coins } = useMarketStore();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const getActiveAlertsRef = useRef(getActiveAlerts);
+  const markTriggeredRef = useRef(markTriggered);
+  const coinsRef = useRef(coins);
+
+  useEffect(() => { getActiveAlertsRef.current = getActiveAlerts; }, [getActiveAlerts]);
+  useEffect(() => { markTriggeredRef.current = markTriggered; }, [markTriggered]);
+  useEffect(() => { coinsRef.current = coins; }, [coins]);
 
   useEffect(() => {
     const checkAlerts = () => {
-      const active = getActiveAlerts();
-      if (active.length === 0 || coins.length === 0) return;
+      const active = getActiveAlertsRef.current();
+      const currentCoins = coinsRef.current;
+      if (active.length === 0 || currentCoins.length === 0) return;
 
       for (const alert of active) {
-        const coin = coins.find((c) => c.symbol === alert.symbol);
+        const coin = currentCoins.find((c) => c.symbol === alert.symbol);
         if (!coin) continue;
 
         const shouldTrigger =
@@ -41,23 +49,16 @@ export default function AlertChecker() {
           (alert.direction === 'below' && coin.price <= alert.targetPrice);
 
         if (shouldTrigger) {
-          markTriggered(alert.id);
+          markTriggeredRef.current(alert.id);
 
-          // Request notification permission and show notification
           if (typeof Notification !== 'undefined') {
+            const body = `\u{1F514} ${alert.symbol} telah mencapai $${coin.price.toLocaleString()}! Target: $${alert.targetPrice.toLocaleString()} (${alert.direction === 'above' ? 'Di atas' : 'Di bawah'})`;
+            const opts = { body, icon: coin.image };
             if (Notification.permission === 'granted') {
-              new Notification(`Price Alert - ${alert.symbol}`, {
-                body: `\u{1F514} ${alert.symbol} telah mencapai $${coin.price.toLocaleString()}! Target: $${alert.targetPrice.toLocaleString()} (${alert.direction === 'above' ? 'Di atas' : 'Di bawah'})`,
-                icon: coin.image,
-              });
+              new Notification(`Price Alert - ${alert.symbol}`, opts);
             } else if (Notification.permission !== 'denied') {
               Notification.requestPermission().then((perm) => {
-                if (perm === 'granted') {
-                  new Notification(`Price Alert - ${alert.symbol}`, {
-                    body: `\u{1F514} ${alert.symbol} telah mencapai $${coin.price.toLocaleString()}! Target: $${alert.targetPrice.toLocaleString()} (${alert.direction === 'above' ? 'Di atas' : 'Di bawah'})`,
-                    icon: coin.image,
-                  });
-                }
+                if (perm === 'granted') new Notification(`Price Alert - ${alert.symbol}`, opts);
               });
             }
           }
@@ -67,18 +68,13 @@ export default function AlertChecker() {
       }
     };
 
-    // Check immediately
     checkAlerts();
-
-    // Then check every 30 seconds
     intervalRef.current = setInterval(checkAlerts, 30000);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [alerts, coins, getActiveAlerts, markTriggered]);
+  }, []);
 
   return null;
 }

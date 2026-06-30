@@ -72,11 +72,17 @@ Support terdekat: $${support[0]?.toLocaleString() ?? '-'}. Resistance terdekat: 
 }
 
 export async function POST(request: Request) {
+  let body: AnalyzeRequest;
   try {
-    const body = (await request.json()) as AnalyzeRequest;
+    body = (await request.json()) as AnalyzeRequest;
+  } catch {
+    return Response.json({ error: 'Invalid request body' }, { status: 400 });
+  }
+
+  try {
     const { symbol, price, change24h, indicators, support, resistance, mode } = body;
 
-    if (!symbol || !price || !indicators) {
+    if (!symbol || price == null || !indicators) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -149,17 +155,11 @@ Berikan response dalam format JSON:
     return Response.json(result);
   } catch (error) {
     console.error('Analyze API error:', error);
-
-    // If AI call fails, fall back to mock
     try {
-      const body = (await request.clone().json()) as AnalyzeRequest;
       const mock = generateMockAnalysis(body);
       return Response.json(mock);
     } catch {
-      return Response.json(
-        { error: 'Failed to analyze' },
-        { status: 500 }
-      );
+      return Response.json({ error: 'Failed to analyze' }, { status: 500 });
     }
   }
 }

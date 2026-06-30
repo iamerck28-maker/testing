@@ -54,6 +54,17 @@ export default function ScannerResultPage({
   const scanner = SCANNERS.find((s) => s.id === id);
   const Icon = scanner ? ICON_MAP[scanner.icon] || Activity : Activity;
 
+  const CONFLUENCE_DEPS = ['radar', 'candle', 'chart', 'volume', 'whale', 'accumulation', 'prepump', 'multitf', 'divergence'];
+
+  function buildResults(scannerId: string, coinData: import('@/lib/types').CoinData[]): ScannerPick[] {
+    if (scannerId !== 'confluence') return runScanner(scannerId, coinData);
+    const allResults: Record<string, ScannerPick[]> = {};
+    for (const sid of CONFLUENCE_DEPS) {
+      allResults[sid] = runScanner(sid, coinData);
+    }
+    return runScanner('confluence', coinData, allResults);
+  }
+
   const loadResults = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -64,8 +75,7 @@ export default function ScannerResultPage({
         coinData = await fetchMarketData();
         setCoins(coinData);
       }
-      const results = runScanner(id, coinData);
-      setPicks(results);
+      setPicks(buildResults(id, coinData));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal memuat data scanner');
     } finally {
@@ -83,8 +93,7 @@ export default function ScannerResultPage({
       setMarketLoading(true);
       const freshCoins = await fetchMarketData();
       setCoins(freshCoins);
-      const results = runScanner(id, freshCoins);
-      setPicks(results);
+      setPicks(buildResults(id, freshCoins));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal refresh');
     } finally {

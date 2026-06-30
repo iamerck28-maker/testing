@@ -221,7 +221,7 @@ export function runConfluenceScanner(coins: CoinData[], allResults: Record<strin
           appearsIn.push(name);
         }
       }
-      const count = Math.max(appearsIn.length, Math.floor(rng(coin.price * 67) * 5) + 1);
+      const count = appearsIn.length;
       const score = Math.min(100, count * 20);
       return {
         ...coin,
