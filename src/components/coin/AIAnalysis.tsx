@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Target, TrendingUp, TrendingDown, Minus, Loader2, AlertTriangle } from 'lucide-react';
 import BottomSheet from '@/components/ui/BottomSheet';
 import { formatPrice } from '@/lib/constants';
@@ -94,10 +94,12 @@ export default function AIAnalysis({
     }
   };
 
-  // Fetch on open if no result yet
-  if (isOpen && !result && !loading && !error) {
-    fetchAnalysis();
-  }
+  useEffect(() => {
+    if (isOpen && !result && !loading && !error) {
+      fetchAnalysis();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const config = result ? RECOMMENDATION_CONFIG[result.recommendation] : null;
   const RecIcon = config?.icon ?? Minus;

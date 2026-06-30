@@ -22,16 +22,17 @@ export async function fetchMarketData(page = 1, perPage = 50): Promise<CoinData[
     if (!res.ok) throw new Error('Failed to fetch market data');
     const data = await res.json();
     return data.map((coin: Record<string, unknown>) => ({
+      id: coin.id as string,
       symbol: (coin.symbol as string).toUpperCase(),
       name: coin.name as string,
-      price: coin.current_price as number,
-      change24h: coin.price_change_percentage_24h as number || 0,
-      volume24h: coin.total_volume as number,
-      marketCap: coin.market_cap as number,
-      rank: coin.market_cap_rank as number,
+      price: (coin.current_price as number) ?? 0,
+      change24h: (coin.price_change_percentage_24h as number) ?? 0,
+      volume24h: (coin.total_volume as number) ?? 0,
+      marketCap: (coin.market_cap as number) ?? 0,
+      rank: (coin.market_cap_rank as number) ?? 0,
       image: coin.image as string,
-      high24h: coin.high_24h as number,
-      low24h: coin.low_24h as number,
+      high24h: (coin.high_24h as number) ?? 0,
+      low24h: (coin.low_24h as number) ?? 0,
     }));
   });
 }

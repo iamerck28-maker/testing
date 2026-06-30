@@ -72,7 +72,8 @@ export const usePortfolioStore = create<PortfolioStore>((set, get) => ({
 
   getTotalValue: (prices) => {
     return get().holdings.reduce((sum, h) => {
-      const price = prices[h.symbol] ?? 0;
+      const price = prices[h.symbol];
+      if (price == null) return sum;
       return sum + h.amount * price;
     }, 0);
   },
@@ -83,7 +84,8 @@ export const usePortfolioStore = create<PortfolioStore>((set, get) => ({
     let totalValue = 0;
 
     for (const h of holdings) {
-      const price = prices[h.symbol] ?? 0;
+      const price = prices[h.symbol];
+      if (price == null) continue;
       totalCost += h.amount * h.buyPrice;
       totalValue += h.amount * price;
     }
