@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { Star, StarOff, Sparkles, ArrowUpRight, ArrowDownRight, Bell } from 'lucide-react';
+import { Star, StarOff, Sparkles, ArrowUpRight, ArrowDownRight, Bell, Share2 } from 'lucide-react';
 import BottomSheet from '@/components/ui/BottomSheet';
 import Chip from '@/components/ui/Chip';
 import MiniChart from '@/components/coin/MiniChart';
@@ -120,6 +120,7 @@ export default function CoinDetailSheet() {
   const [loadingChart, setLoadingChart] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   const coin = coins.find((c) => c.symbol === selectedCoin);
   const isInWatchlist = selectedCoin ? watchlist.includes(selectedCoin) : false;
@@ -183,6 +184,28 @@ export default function CoinDetailSheet() {
 
   const scoreBarValue = coin ? Math.max(-30, Math.min(30, coin.change24h * 3)) : 0;
 
+  const handleShare = async () => {
+    if (!coin) return;
+    const shareText = `${coin.symbol} — ${formatPrice(coin.price)} (${coin.change24h >= 0 ? '+' : ''}${coin.change24h.toFixed(2)}%) | CryptoBro`;
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: shareText, url: shareUrl });
+      } catch {
+        // Dismissed or not supported
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      } catch {
+        // Silently fail
+      }
+    }
+  };
+
   if (!coin) return null;
 
   const isPositive = coin.change24h >= 0;
@@ -212,19 +235,33 @@ export default function CoinDetailSheet() {
             <p className="text-[11px] text-text-muted">{coin.name}</p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="font-mono-price text-base font-bold text-text-primary">
-            {formatPrice(coin.price)}
-          </p>
-          <p
-            className={`flex items-center justify-end gap-0.5 text-xs font-semibold ${
-              isPositive ? 'text-bullish' : 'text-bearish'
-            }`}
+        <div className="flex items-center gap-2">
+          <div className="text-right">
+            <p className="font-mono-price text-base font-bold text-text-primary">
+              {formatPrice(coin.price)}
+            </p>
+            <p
+              className={`flex items-center justify-end gap-0.5 text-xs font-semibold ${
+                isPositive ? 'text-bullish' : 'text-bearish'
+              }`}
+            >
+              {isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+              {isPositive ? '+' : ''}
+              {coin.change24h.toFixed(2)}%
+            </p>
+          </div>
+          <button
+            onClick={handleShare}
+            className="relative flex items-center justify-center rounded-xl border border-border-line bg-surface-card p-2 text-text-secondary transition-transform active:scale-95"
+            aria-label="Bagikan koin ini"
           >
-            {isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-            {isPositive ? '+' : ''}
-            {coin.change24h.toFixed(2)}%
-          </p>
+            <Share2 size={15} />
+            {shareCopied && (
+              <span className="absolute -top-8 right-0 whitespace-nowrap rounded-lg bg-surface-card border border-border-line px-2 py-1 text-[10px] font-medium text-text-primary shadow">
+                Link disalin!
+              </span>
+            )}
+          </button>
         </div>
       </div>
 

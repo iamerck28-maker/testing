@@ -173,6 +173,7 @@ export default function ScannerResultPage({
               <ScannerResultCard
                 key={pick.symbol}
                 pick={pick}
+                scannerName={scanner?.name ?? 'Scanner'}
                 onClick={() => openCoinDetail(pick.symbol)}
               />
             ))}

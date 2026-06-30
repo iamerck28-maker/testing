@@ -6,10 +6,11 @@ import { useAppStore, useMarketStore } from '@/lib/store';
 import { fetchMarketData } from '@/lib/api';
 import { formatPrice, formatVolume, formatMarketCap } from '@/lib/constants';
 import type { CoinData } from '@/lib/types';
+import Heatmap from '@/components/market/Heatmap';
 
 type SortKey = 'rank' | 'price' | 'change24h' | 'volume24h' | 'marketCap';
 type SortDir = 'asc' | 'desc';
-type Tab = 'semua' | 'watchlist';
+type Tab = 'semua' | 'watchlist' | 'heatmap';
 
 export default function MarketPage() {
   const { watchlist, openCoinDetail } = useAppStore();
@@ -79,17 +80,17 @@ export default function MarketPage() {
       {/* Tabs + Refresh */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1 rounded-lg bg-surface-card p-0.5">
-          {(['semua', 'watchlist'] as const).map((t) => (
+          {(['semua', 'watchlist', 'heatmap'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded-md px-4 py-1.5 text-xs font-semibold capitalize transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
                 tab === t
                   ? 'bg-accent text-bg-primary'
                   : 'text-text-muted hover:text-text-secondary'
               }`}
             >
-              {t === 'semua' ? 'Semua' : 'Watchlist'}
+              {t === 'semua' ? 'Semua' : t === 'watchlist' ? 'Watchlist' : 'Heatmap'}
             </button>
           ))}
         </div>
@@ -102,61 +103,70 @@ export default function MarketPage() {
         </button>
       </div>
 
-      {/* Table Header */}
-      <div className="mt-4 grid grid-cols-[32px_1fr_auto_auto] items-center gap-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-text-muted md:grid-cols-[32px_1fr_auto_auto_auto_auto]">
-        <button onClick={() => toggleSort('rank')} className="text-left">
-          # <SortIcon col="rank" />
-        </button>
-        <span className="text-left">Coin</span>
-        <button onClick={() => toggleSort('price')} className="text-right">
-          Harga <SortIcon col="price" />
-        </button>
-        <button onClick={() => toggleSort('change24h')} className="text-right">
-          24h <SortIcon col="change24h" />
-        </button>
-        <button
-          onClick={() => toggleSort('volume24h')}
-          className="hidden text-right md:block"
-        >
-          Volume <SortIcon col="volume24h" />
-        </button>
-        <button
-          onClick={() => toggleSort('marketCap')}
-          className="hidden text-right md:block"
-        >
-          MCap <SortIcon col="marketCap" />
-        </button>
-      </div>
-
-      {/* Coin List */}
-      <div className="mt-2 flex flex-col gap-1">
-        {loading && coins.length === 0 ? (
-          Array.from({ length: 12 }).map((_, i) => (
-            <div
-              key={i}
-              className="skeleton h-14 rounded-xl"
-            />
-          ))
-        ) : tab === 'watchlist' && filteredCoins.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <Star size={32} className="text-text-muted" />
-            <p className="text-sm text-text-muted">
-              Belum ada coin di watchlist
-            </p>
-            <p className="text-xs text-text-muted">
-              Tap bintang pada coin untuk menambahkan
-            </p>
+      {/* Heatmap view */}
+      {tab === 'heatmap' ? (
+        <div className="mt-4">
+          <Heatmap />
+        </div>
+      ) : (
+        <>
+          {/* Table Header */}
+          <div className="mt-4 grid grid-cols-[32px_1fr_auto_auto] items-center gap-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-text-muted md:grid-cols-[32px_1fr_auto_auto_auto_auto]">
+            <button onClick={() => toggleSort('rank')} className="text-left">
+              # <SortIcon col="rank" />
+            </button>
+            <span className="text-left">Coin</span>
+            <button onClick={() => toggleSort('price')} className="text-right">
+              Harga <SortIcon col="price" />
+            </button>
+            <button onClick={() => toggleSort('change24h')} className="text-right">
+              24h <SortIcon col="change24h" />
+            </button>
+            <button
+              onClick={() => toggleSort('volume24h')}
+              className="hidden text-right md:block"
+            >
+              Volume <SortIcon col="volume24h" />
+            </button>
+            <button
+              onClick={() => toggleSort('marketCap')}
+              className="hidden text-right md:block"
+            >
+              MCap <SortIcon col="marketCap" />
+            </button>
           </div>
-        ) : (
-          filteredCoins.map((coin) => (
-            <CoinRow
-              key={coin.symbol}
-              coin={coin}
-              onClick={() => openCoinDetail(coin.symbol)}
-            />
-          ))
-        )}
-      </div>
+
+          {/* Coin List */}
+          <div className="mt-2 flex flex-col gap-1">
+            {loading && coins.length === 0 ? (
+              Array.from({ length: 12 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="skeleton h-14 rounded-xl"
+                />
+              ))
+            ) : tab === 'watchlist' && filteredCoins.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-16 text-center">
+                <Star size={32} className="text-text-muted" />
+                <p className="text-sm text-text-muted">
+                  Belum ada coin di watchlist
+                </p>
+                <p className="text-xs text-text-muted">
+                  Tap bintang pada coin untuk menambahkan
+                </p>
+              </div>
+            ) : (
+              filteredCoins.map((coin) => (
+                <CoinRow
+                  key={coin.symbol}
+                  coin={coin}
+                  onClick={() => openCoinDetail(coin.symbol)}
+                />
+              ))
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

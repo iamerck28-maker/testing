@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDown, ChevronRight, Info } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import { useState, useMemo } from 'react';
+import { ChevronDown, ChevronRight, Info, Wallet } from 'lucide-react';
+import Link from 'next/link';
+import { useAppStore, useMarketStore } from '@/lib/store';
+import { usePortfolioStore } from '@/lib/portfolio';
 import { MODE_CONFIG, SCANNERS } from '@/lib/constants';
 import type { TradingMode, MarketType, ValidationStat } from '@/lib/types';
 
@@ -27,16 +29,70 @@ const SCORE_GUIDE = [
   { range: '0-39', label: 'Lemah', color: '#f6465d', desc: 'Hindari atau tunggu' },
 ];
 
+function formatUSD(value: number): string {
+  if (Math.abs(value) >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+  if (Math.abs(value) >= 1e3) return `$${(value / 1e3).toFixed(2)}K`;
+  return `$${value.toFixed(2)}`;
+}
+
 export default function ProfilePage() {
   const { mode, setMode, marketType, setMarketType } = useAppStore();
+  const { coins } = useMarketStore();
+  const { holdings, getTotalValue, getTotalPnL } = usePortfolioStore();
   const [guideOpen, setGuideOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+
+  const prices = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const c of coins) map[c.symbol] = c.price;
+    return map;
+  }, [coins]);
+
+  const totalValue = getTotalValue(prices);
+  const { pnl, pnlPct } = getTotalPnL(prices);
+  const isPnlPositive = pnl >= 0;
 
   const tradingModes: TradingMode[] = ['scalping', 'intraday', 'swing'];
   const marketTypes: MarketType[] = ['spot', 'futures'];
 
   return (
     <div className="px-4 py-3">
+      {/* Portfolio Tracker */}
+      <section className="mb-6">
+        <h2 className="mb-3 text-sm font-semibold text-text-secondary">
+          Portfolio Tracker
+        </h2>
+        <Link
+          href="/portfolio"
+          className="flex items-center gap-3 rounded-xl border border-border-line bg-surface-card p-4 transition-colors active:bg-bg-secondary"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+            <Wallet size={20} className="text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            {holdings.length === 0 ? (
+              <>
+                <p className="text-sm font-semibold text-text-primary">Portfolio</p>
+                <p className="text-xs text-text-muted">Belum ada holding</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-text-primary">
+                  {formatUSD(totalValue)}
+                </p>
+                <p className={`text-xs font-medium ${isPnlPositive ? 'text-bullish' : 'text-bearish'}`}>
+                  {isPnlPositive ? '+' : ''}{formatUSD(pnl)} ({isPnlPositive ? '+' : ''}{pnlPct.toFixed(2)}%)
+                </p>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-1 text-xs text-accent font-medium">
+            <span>Lihat Detail</span>
+            <ChevronRight size={14} />
+          </div>
+        </Link>
+      </section>
+
       {/* Mode Selector */}
       <section>
         <h2 className="mb-3 text-sm font-semibold text-text-secondary">

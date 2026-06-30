@@ -1,0 +1,16 @@
+{
+  "name": "CryptoBro - Crypto Scanner",
+  "short_name": "CryptoBro",
+  "description": "Scanner crypto trading analysis untuk trader Indonesia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0e11",
+  "theme_color": "#b6ff00",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "categories": ["finance", "utilities"]
+}
